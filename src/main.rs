@@ -1,4 +1,7 @@
 use std::env;
+use std::path;
+
+mod utils;
 
 fn main() {
     let mut command_name: String = "".to_string();
@@ -14,7 +17,28 @@ fn main() {
     }
     println!("Executing command {}.", command_name);
 
-    if command_name == "ls" {}
+    if command_name == "ls" {
+        for file_path in crate::utils::get_all_paths(path::Path::new(".")).unwrap() {
+            if !file_path.is_file() {
+                continue;
+            }
+
+            let file_path = match file_path.to_str() {
+                Some(f) => f,
+                None => continue,
+            };
+
+            if file_path.contains(".git/") {
+                continue;
+            }
+
+            if let Ok(flatpak_manifest) =
+                flatpak_rs::flatpak_manifest::FlatpakManifest::load_from_file(file_path.to_string())
+            {
+                println!("Flatpak application at {}.", &file_path);
+            }
+        }
+    }
 
     // I should be able to list the valid command names here,
     // or this should have been handled earlier?
