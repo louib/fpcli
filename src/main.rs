@@ -38,6 +38,7 @@ fn main() {
                 println!("Flatpak application at {}.", &file_path);
             }
         }
+        return;
     }
 
     // I should be able to list the valid command names here,
