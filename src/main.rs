@@ -48,6 +48,9 @@ fn main() {
                 println!("{}", url);
             }
         }
+
+        // TODO Also try to parse for source manifests.
+        return;
     }
 
     if command_name == "ls" {
