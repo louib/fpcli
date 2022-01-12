@@ -5,6 +5,7 @@ use flatpak_rs::flatpak_manifest::{
     FlatpakManifest, FlatpakModule, FlatpakModuleDescription, FlatpakSourceDescription,
 };
 
+mod bare_install;
 mod utils;
 
 fn main() {
