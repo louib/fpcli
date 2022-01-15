@@ -1,4 +1,4 @@
-use flatpak_rs::flatpak_manifest::FlatpakModuleDescription;
+use flatpak_rs::module::FlatpakModuleDescription;
 
 pub fn bare_install(module: &FlatpakModuleDescription) -> Result<(), String> {
     // TODO create a temp directory with the name of the module.

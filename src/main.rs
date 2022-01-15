@@ -1,9 +1,8 @@
 use std::env;
 use std::path;
 
-use flatpak_rs::flatpak_manifest::{
-    FlatpakManifest, FlatpakModule, FlatpakModuleDescription, FlatpakSourceDescription,
-};
+use flatpak_rs::application::FlatpakApplication;
+use flatpak_rs::module::{FlatpakModule, FlatpakModuleDescription};
 
 mod bare_install;
 mod utils;
@@ -31,8 +30,8 @@ fn main() {
         // TODO do some validations on the file path before trying to parse it.
         let mut all_urls: Vec<String> = vec![];
 
-        if let Ok(flatpak_manifest) = FlatpakManifest::load_from_file(file_path.to_string()) {
-            for module in flatpak_manifest.get_all_modules_recursively() {
+        if let Ok(flatpak_application) = FlatpakApplication::load_from_file(file_path.to_string()) {
+            for module in flatpak_application.get_all_modules_recursively() {
                 let module_description = match module {
                     FlatpakModule::Description(d) => d,
                     FlatpakModule::Path(_) => continue,
@@ -69,7 +68,9 @@ fn main() {
                 continue;
             }
 
-            if let Ok(flatpak_manifest) = FlatpakManifest::load_from_file(file_path.to_string()) {
+            if let Ok(flatpak_application) =
+                FlatpakApplication::load_from_file(file_path.to_string())
+            {
                 println!("Flatpak application at {}.", &file_path);
             }
         }
