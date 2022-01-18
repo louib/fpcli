@@ -1,7 +1,7 @@
 use flatpak_rs::build_system::FlatpakBuildSystem;
-use flatpak_rs::module::FlatpakModuleDescription;
+use flatpak_rs::module::FlatpakModule;
 
-pub fn bare_install(module: &FlatpakModuleDescription) -> Result<(), String> {
+pub fn bare_install(module: &FlatpakModule) -> Result<(), String> {
     // TODO create a temp directory with the name of the module.
     // If it's a git repo, check to see if we already cloned it.
     // if it's an archive, check if we already downloaded it.

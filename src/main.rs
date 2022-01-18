@@ -2,7 +2,7 @@ use std::env;
 use std::path;
 
 use flatpak_rs::application::FlatpakApplication;
-use flatpak_rs::module::{FlatpakModule, FlatpakModuleDescription};
+use flatpak_rs::module::{FlatpakModule, FlatpakModuleItem};
 
 mod bare_install;
 mod utils;
@@ -33,8 +33,8 @@ fn main() {
         if let Ok(flatpak_application) = FlatpakApplication::load_from_file(file_path.to_string()) {
             for module in flatpak_application.get_all_modules_recursively() {
                 let module_description = match module {
-                    FlatpakModule::Description(d) => d,
-                    FlatpakModule::Path(_) => continue,
+                    FlatpakModuleItem::Description(d) => d,
+                    FlatpakModuleItem::Path(_) => continue,
                 };
                 for url in module_description.get_all_urls() {
                     println!("{}", url);
@@ -42,8 +42,7 @@ fn main() {
             }
         }
 
-        if let Ok(flatpak_module) = FlatpakModuleDescription::load_from_file(file_path.to_string())
-        {
+        if let Ok(flatpak_module) = FlatpakModule::load_from_file(file_path.to_string()) {
             for url in flatpak_module.get_all_urls() {
                 println!("{}", url);
             }
