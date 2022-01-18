@@ -76,6 +76,28 @@ fn main() {
         return;
     }
 
+    if command_name == "lint" {
+        if args.len() <= 2 {
+            panic!("Please provide a file path to parse.");
+        }
+        let file_path = args[2].clone();
+
+        // TODO we should also try to parse the file as a module manifest or as a source manifest!
+        let flatpak_application = match FlatpakApplication::load_from_file(file_path.to_string())
+        {
+            Ok(a) => a,
+            Err(e) => {
+                panic!("Could not parse application manifest file at {}", &file_path);
+            },
+        };
+
+        if let Err(e) = FlatpakApplication::dump(&flatpak_application) {
+            panic!("Could not dump application manifest file at {}", &file_path);
+
+        }
+        return;
+    }
+
     // I should be able to list the valid command names here,
     // or this should have been handled earlier?
     panic!("Invalid command name {}", command_name);
