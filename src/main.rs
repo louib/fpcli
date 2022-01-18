@@ -1,4 +1,5 @@
 use std::env;
+use std::fs;
 use std::path;
 
 use flatpak_rs::application::FlatpakApplication;
@@ -83,18 +84,26 @@ fn main() {
         let file_path = args[2].clone();
 
         // TODO we should also try to parse the file as a module manifest or as a source manifest!
-        let flatpak_application = match FlatpakApplication::load_from_file(file_path.to_string())
-        {
-            Ok(a) => a,
+        let flatpak_application = match FlatpakApplication::load_from_file(file_path.to_string()) {
+            Ok(m) => m,
             Err(e) => {
-                panic!("Could not parse application manifest file at {}", &file_path);
-            },
+                eprintln!("Could not parse manifest file at {}: {}.", file_path, e);
+                return;
+            }
         };
 
-        if let Err(e) = FlatpakApplication::dump(&flatpak_application) {
-            panic!("Could not dump application manifest file at {}", &file_path);
+        let application_dump = match flatpak_application.dump() {
+            Ok(d) => d,
+            Err(e) => {
+                eprintln!("Could not dump manifest: {}.", e);
+                return;
+            }
+        };
 
-        }
+        if let Err(e) = fs::write(path::Path::new(&file_path), application_dump) {
+            panic!("could not write file {}: {}.", file_path, e);
+        };
+
         return;
     }
 
