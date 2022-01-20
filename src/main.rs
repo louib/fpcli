@@ -49,6 +49,12 @@ enum SubCommand {
         /// The path of the manifest to convert.
         path: String,
     },
+    /// Parse a Flatpak manifest.
+    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    Parse {
+        /// The path of the manifest to parse.
+        path: String,
+    },
 }
 
 fn main() {
@@ -171,6 +177,21 @@ fn main() {
             if let Err(e) = fs::write(path::Path::new(&path), application_dump) {
                 panic!("could not write file {}: {}.", path, e);
             };
+        }
+        SubCommand::Parse { path } => {
+            // TODO we should also try to parse the file as a module manifest or as a source manifest!
+            let flatpak_application = match FlatpakApplication::load_from_file(path.to_string()) {
+                Ok(m) => m,
+                Err(e) => {
+                    eprintln!("Could not parse manifest file at {}: {}.", path, e);
+                    return;
+                }
+            };
+
+            println!(
+                "Parsed Flatpak application manifest for app {}.",
+                flatpak_application.get_id()
+            );
         }
     }
 }
