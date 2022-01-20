@@ -3,7 +3,8 @@ use std::fs;
 use std::path;
 
 use clap::{AppSettings, Parser, Subcommand};
-use flatpak_rs::application::{FlatpakApplication, FlatpakManifestFormat};
+use flatpak_rs::application::FlatpakApplication;
+use flatpak_rs::format::FlatpakManifestFormat;
 use flatpak_rs::module::{FlatpakModule, FlatpakModuleItem};
 
 mod bare_install;
