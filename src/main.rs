@@ -55,6 +55,12 @@ enum SubCommand {
         /// The path of the manifest to parse.
         path: String,
     },
+    /// Resolve all the imported module or source manifests.
+    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    Resolve {
+        /// The path of the manifest to resolve.
+        path: String,
+    },
 }
 
 fn main() {
@@ -193,5 +199,30 @@ fn main() {
                 flatpak_application.get_id()
             );
         }
+        SubCommand::Resolve { path } => {
+            // TODO we should also try to parse the file as a module manifest here.
+            let flatpak_application = match FlatpakApplication::load_from_file(path.to_string()) {
+                Ok(m) => m,
+                Err(e) => {
+                    eprintln!("Could not parse manifest file at {}: {}.", path, e);
+                    return;
+                }
+            };
+
+            let resolved_modules = resolve_modules(&flatpak_application.modules);
+            println!("Resolved modules for {}.", flatpak_application.get_id());
+        }
     }
+}
+
+pub fn resolve_modules(module_items: &Vec<FlatpakModuleItem>) -> Vec<FlatpakModule> {
+    let mut response: Vec<FlatpakModule> = vec![];
+    for module_item in module_items {
+        let module = match module_item {
+            FlatpakModuleItem::Path(p) => continue,
+            FlatpakModuleItem::Description(d) => d,
+        };
+        response.push(module.clone());
+    }
+    response
 }
