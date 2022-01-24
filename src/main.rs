@@ -210,20 +210,27 @@ fn main() {
                 }
             };
 
-            flatpak_application.modules = resolve_modules(&flatpak_application.modules);
+            flatpak_application.modules = resolve_modules(&path, &flatpak_application.modules);
             println!("Resolved modules for {}.", flatpak_application.get_id());
         }
     }
 }
 
-pub fn resolve_modules(module_items: &Vec<FlatpakModuleItem>) -> Vec<FlatpakModuleItem> {
+pub fn resolve_modules(
+    base_path: &str,
+    module_items: &Vec<FlatpakModuleItem>,
+) -> Vec<FlatpakModuleItem> {
     let mut response: Vec<FlatpakModuleItem> = vec![];
     for module_item in module_items {
+        let mut new_base_path = base_path;
         let mut module = match module_item {
-            FlatpakModuleItem::Path(p) => FlatpakModule::load_from_file(p.to_string()).unwrap(),
+            FlatpakModuleItem::Path(p) => {
+                new_base_path = p;
+                FlatpakModule::load_from_file(p.to_string()).unwrap()
+            }
             FlatpakModuleItem::Description(d) => d.clone(),
         };
-        module.modules = resolve_modules(&module.modules);
+        module.modules = resolve_modules(new_base_path, &module.modules);
         response.push(FlatpakModuleItem::Description(module));
     }
     response
