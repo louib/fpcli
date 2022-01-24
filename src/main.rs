@@ -201,7 +201,8 @@ fn main() {
         }
         SubCommand::Resolve { path } => {
             // TODO we should also try to parse the file as a module manifest here.
-            let flatpak_application = match FlatpakApplication::load_from_file(path.to_string()) {
+            let mut flatpak_application = match FlatpakApplication::load_from_file(path.to_string())
+            {
                 Ok(m) => m,
                 Err(e) => {
                     eprintln!("Could not parse manifest file at {}: {}.", path, e);
@@ -209,20 +210,21 @@ fn main() {
                 }
             };
 
-            let resolved_modules = resolve_modules(&flatpak_application.modules);
+            flatpak_application.modules = resolve_modules(&flatpak_application.modules);
             println!("Resolved modules for {}.", flatpak_application.get_id());
         }
     }
 }
 
-pub fn resolve_modules(module_items: &Vec<FlatpakModuleItem>) -> Vec<FlatpakModule> {
-    let mut response: Vec<FlatpakModule> = vec![];
+pub fn resolve_modules(module_items: &Vec<FlatpakModuleItem>) -> Vec<FlatpakModuleItem> {
+    let mut response: Vec<FlatpakModuleItem> = vec![];
     for module_item in module_items {
-        let module = match module_item {
-            FlatpakModuleItem::Path(p) => continue,
-            FlatpakModuleItem::Description(d) => d,
+        let mut module = match module_item {
+            FlatpakModuleItem::Path(p) => FlatpakModule::load_from_file(p.to_string()).unwrap(),
+            FlatpakModuleItem::Description(d) => d.clone(),
         };
-        response.push(module.clone());
+        module.modules = resolve_modules(&module.modules);
+        response.push(FlatpakModuleItem::Description(module));
     }
     response
 }
