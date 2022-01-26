@@ -55,11 +55,15 @@ enum SubCommand {
         /// The path of the manifest to parse.
         path: String,
     },
-    /// Resolve all the imported module or source manifests.
+    /// Resolve all the imported module or source manifests and updates
+    /// the manifest provided as argument.
     #[clap(setting(AppSettings::ArgRequiredElseHelp))]
     Resolve {
         /// The path of the manifest to resolve.
         path: String,
+        /// Only check that the manifests can be resolved.
+        #[clap(long, short)]
+        check: bool,
     },
 }
 
@@ -199,7 +203,7 @@ fn main() {
                 flatpak_application.get_id()
             );
         }
-        SubCommand::Resolve { path } => {
+        SubCommand::Resolve { path, check } => {
             // TODO we should also try to parse the file as a module manifest here.
             let mut flatpak_application = match FlatpakApplication::load_from_file(path.to_string())
             {
@@ -217,6 +221,20 @@ fn main() {
             flatpak_application.modules =
                 resolve_modules(new_base_path, &flatpak_application.modules);
             println!("Resolved modules for {}.", flatpak_application.get_id());
+            // FIXME we should actually also resolve the imported sources here.
+
+            if *check {
+                return;
+            }
+
+            let application_dump = flatpak_application.dump().unwrap();
+            match fs::write(path::Path::new(&path), application_dump) {
+                Ok(content) => content,
+                Err(e) => {
+                    eprintln!("could not write file {}: {}.", &path, e);
+                    return;
+                }
+            };
         }
     }
 }
