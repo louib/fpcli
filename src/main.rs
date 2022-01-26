@@ -210,7 +210,12 @@ fn main() {
                 }
             };
 
-            flatpak_application.modules = resolve_modules(&path, &flatpak_application.modules);
+            let mut new_base_path = match path::Path::new(path).parent() {
+                Some(b) => b.to_str().unwrap(),
+                None => "",
+            };
+            flatpak_application.modules =
+                resolve_modules(new_base_path, &flatpak_application.modules);
             println!("Resolved modules for {}.", flatpak_application.get_id());
         }
     }
@@ -224,7 +229,10 @@ pub fn resolve_modules(
     for module_item in module_items {
         match module_item {
             FlatpakModuleItem::Path(p) => {
-                let mut new_base_path = p;
+                let mut new_base_path = match path::Path::new(&p).parent() {
+                    Some(b) => b.to_str().unwrap(),
+                    None => "",
+                };
                 // let mut new_base_path = base_path + p;
                 let mut module = FlatpakModule::load_from_file(p.to_string()).unwrap();
                 module.modules = resolve_modules(new_base_path, &module.modules);
