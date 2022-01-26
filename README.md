@@ -1,6 +1,10 @@
 # fpcli
 A CLI app for Flatpak manifests.
 
+![Code formatting](https://github.com/louib/fpcli/workflows/formatting/badge.svg)
+[![dependency status](https://deps.rs/repo/github/louib/fpcli/status.svg)](https://deps.rs/repo/github/louib/fpcli)
+[![License file](https://img.shields.io/github/license/louib/fpcli)](https://github.com/louib/fpcli/blob/master/LICENSE)
+
 ## Usage
 ```
 fpcli 
