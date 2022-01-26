@@ -6,7 +6,7 @@ pub fn bare_install(module: &FlatpakModule) -> Result<(), String> {
     // If it's a git repo, check to see if we already cloned it.
     // if it's an archive, check if we already downloaded it.
     //
-    match &module.buildsystem {
+    match &module.buildsystem.as_ref().unwrap_or(&FlatpakBuildSystem::default()) {
         FlatpakBuildSystem::Meson => {
             // TODO check if a meson.build file exists
         }

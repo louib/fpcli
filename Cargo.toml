@@ -7,6 +7,6 @@ edition = "2018"
 
 [dependencies]
 
-flatpak-rs = "0.6"
+flatpak-rs = "0.7"
 
 clap = { version = "3", features = ["derive"] }
