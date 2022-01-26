@@ -55,8 +55,7 @@ enum SubCommand {
         /// The path of the manifest to parse.
         path: String,
     },
-    /// Resolve all the imported module or source manifests and updates
-    /// the manifest provided as argument.
+    /// Resolve all the imported manifests in a manifest file.
     #[clap(setting(AppSettings::ArgRequiredElseHelp))]
     Resolve {
         /// The path of the manifest to resolve.
