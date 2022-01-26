@@ -233,8 +233,8 @@ pub fn resolve_modules(
                     Some(b) => b.to_str().unwrap(),
                     None => "",
                 };
-                // let mut new_base_path = base_path + p;
-                let mut module = FlatpakModule::load_from_file(p.to_string()).unwrap();
+                let full_file_path = format!("{}/{}", base_path, p);
+                let mut module = FlatpakModule::load_from_file(full_file_path).unwrap();
                 module.modules = resolve_modules(new_base_path, &module.modules);
                 response.push(FlatpakModuleItem::Description(module));
             }
