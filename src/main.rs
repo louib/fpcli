@@ -222,16 +222,20 @@ pub fn resolve_modules(
 ) -> Vec<FlatpakModuleItem> {
     let mut response: Vec<FlatpakModuleItem> = vec![];
     for module_item in module_items {
-        let mut new_base_path = base_path;
-        let mut module = match module_item {
+        match module_item {
             FlatpakModuleItem::Path(p) => {
-                new_base_path = p;
-                FlatpakModule::load_from_file(p.to_string()).unwrap()
+                let mut new_base_path = p;
+                // let mut new_base_path = base_path + p;
+                let mut module = FlatpakModule::load_from_file(p.to_string()).unwrap();
+                module.modules = resolve_modules(new_base_path, &module.modules);
+                response.push(FlatpakModuleItem::Description(module));
             }
-            FlatpakModuleItem::Description(d) => d.clone(),
+            FlatpakModuleItem::Description(m) => {
+                let mut module = m.clone();
+                module.modules = resolve_modules(base_path, &module.modules);
+                response.push(FlatpakModuleItem::Description(module));
+            }
         };
-        module.modules = resolve_modules(new_base_path, &module.modules);
-        response.push(FlatpakModuleItem::Description(module));
     }
     response
 }
