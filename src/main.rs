@@ -17,6 +17,7 @@ mod utils;
 /// A CLI app for Flatpak manifests.
 #[derive(Parser)]
 #[clap(name = "fpcli")]
+#[clap(version = env!("CARGO_PKG_VERSION"))]
 #[clap(about = "A CLI app for Flatpak manifests.", long_about = None)]
 struct Fpcli {
     #[clap(subcommand)]
