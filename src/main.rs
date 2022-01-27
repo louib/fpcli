@@ -64,6 +64,12 @@ enum SubCommand {
         #[clap(long, short)]
         check: bool,
     },
+    /// Print the modules of a manifest in a tree-like structure.
+    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    Tree {
+        /// The path of the manifest to use.
+        path: String,
+    },
 }
 
 fn main() {
@@ -234,6 +240,33 @@ fn main() {
                     return;
                 }
             };
+        }
+        SubCommand::Tree { path } => {
+            // TODO we should also try to parse the file as a module manifest here.
+            let mut flatpak_application = match FlatpakApplication::load_from_file(path.to_string())
+            {
+                Ok(m) => m,
+                Err(e) => {
+                    eprintln!("Could not parse manifest file at {}: {}.", path, e);
+                    return;
+                }
+            };
+
+            // TODO resolve if the option was passed.
+            // TODO add a maximum depth option.
+
+            let mut indent = "  ";
+            println!("{}", flatpak_application.get_id());
+            for module in &flatpak_application.modules {
+                match module {
+                    FlatpakModuleItem::Description(m) => {
+                        println!("↪{} {}", indent, m.name);
+                    }
+                    FlatpakModuleItem::Path(p) => {
+                        println!("↪{} {}", indent, p);
+                    }
+                }
+            }
         }
     }
 }
