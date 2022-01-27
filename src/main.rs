@@ -1,3 +1,5 @@
+//! This is the binary crate for the `fpcli` executable.
+//! For a Flatpak library for Rust, see [flatpak-rs](https://crates.io/crates/flatpak-rs)
 use std::env;
 use std::fs;
 use std::path;
