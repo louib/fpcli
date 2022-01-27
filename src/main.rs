@@ -255,17 +255,24 @@ fn main() {
             // TODO resolve if the option was passed.
             // TODO add a maximum depth option.
 
-            let mut indent = "  ";
             println!("{}", flatpak_application.get_id());
-            for module in &flatpak_application.modules {
-                match module {
-                    FlatpakModuleItem::Description(m) => {
-                        println!("↪{} {}", indent, m.name);
-                    }
-                    FlatpakModuleItem::Path(p) => {
-                        println!("↪{} {}", indent, p);
-                    }
-                }
+            print_modules(&flatpak_application.modules, 0);
+        }
+    }
+}
+
+pub fn print_modules(module_items: &Vec<FlatpakModuleItem>, depth: i64) {
+    let mut indent = "";
+    // TODO Compute the depth!
+
+    for module in module_items {
+        match module {
+            FlatpakModuleItem::Description(m) => {
+                println!("{}↪ {}", indent, m.name);
+                print_modules(&m.modules, depth + 1);
+            }
+            FlatpakModuleItem::Path(p) => {
+                println!("{}↪ {}", indent, p);
             }
         }
     }
