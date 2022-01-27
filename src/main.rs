@@ -6,6 +6,7 @@ use clap::{AppSettings, Parser, Subcommand};
 use flatpak_rs::application::FlatpakApplication;
 use flatpak_rs::format::FlatpakManifestFormat;
 use flatpak_rs::module::{FlatpakModule, FlatpakModuleItem};
+use flatpak_rs::source::{FlatpakSource, FlatpakSourceItem, GIT};
 
 mod bare_install;
 mod utils;
@@ -76,6 +77,8 @@ enum SubCommand {
         #[clap(long, short)]
         max_depth: Option<i64>,
     },
+    /// Creates a new application manifest for the current project.
+    Bootstrap {},
 }
 
 fn main() {
@@ -263,6 +266,39 @@ fn main() {
 
             println!("{}", flatpak_application.get_id());
             print_modules(&flatpak_application.modules, 0, max_depth.unwrap_or(1000));
+        }
+        SubCommand::Bootstrap {} => {
+            let mut flatpak_application = FlatpakApplication::default();
+            flatpak_application.format = FlatpakManifestFormat::YAML;
+            flatpak_application.id = "org.example.appName".to_string();
+            flatpak_application.runtime = "org.gnome.Platform".to_string();
+            flatpak_application.runtime_version = "41".to_string();
+            flatpak_application.sdk = "org.gnome.Sdk".to_string();
+
+            flatpak_application
+                .finish_args
+                .push("--filesystem=home".to_string());
+            flatpak_application
+                .finish_args
+                .push("--socket=x11".to_string());
+            flatpak_application
+                .finish_args
+                .push("--socket=wayland".to_string());
+
+            let mut current_module = FlatpakModule::default();
+            let mut current_source = FlatpakSource::default();
+
+            current_source.r#type = Some(GIT.to_string());
+            current_source.path = Some("./".to_string());
+            current_module
+                .sources
+                .push(FlatpakSourceItem::Description(current_source));
+
+            flatpak_application
+                .modules
+                .push(FlatpakModuleItem::Description(current_module));
+
+            println!("{}", flatpak_application.dump().unwrap());
         }
     }
 }
