@@ -72,6 +72,9 @@ enum SubCommand {
         /// Also resolve the imported manifests.
         #[clap(long, short)]
         resolve: bool,
+        /// Do not print modules deeper than this
+        #[clap(long, short)]
+        max_depth: Option<i64>,
     },
 }
 
@@ -237,7 +240,7 @@ fn main() {
                 }
             };
         }
-        SubCommand::Tree { path, resolve } => {
+        SubCommand::Tree { path, resolve, max_depth } => {
             // TODO we should also try to parse the file as a module manifest here.
             let mut flatpak_application = match FlatpakApplication::load_from_file(path.to_string())
             {
@@ -255,7 +258,7 @@ fn main() {
             // TODO add a maximum depth option.
 
             println!("{}", flatpak_application.get_id());
-            print_modules(&flatpak_application.modules, 0);
+            print_modules(&flatpak_application.modules, 0, max_depth.unwrap_or(1000));
         }
     }
 }
@@ -270,15 +273,21 @@ pub fn resolve_application(path: &str, application: &mut FlatpakApplication) {
     // FIXME we should actually also resolve the imported sources here.
 }
 
-pub fn print_modules(module_items: &Vec<FlatpakModuleItem>, depth: i64) {
-    let mut indent = "";
-    // TODO Compute the depth!
+pub fn print_modules(module_items: &Vec<FlatpakModuleItem>, depth: i64, max_depth: i64) {
+    if depth > max_depth {
+        return;
+    }
+
+    let mut indent = "".to_string();
+    for n in 0..depth {
+        indent = format!("{}{}", indent, "  ");
+    }
 
     for module in module_items {
         match module {
             FlatpakModuleItem::Description(m) => {
                 println!("{}↪ {}", indent, m.name);
-                print_modules(&m.modules, depth + 1);
+                print_modules(&m.modules, depth + 1, max_depth);
             }
             FlatpakModuleItem::Path(p) => {
                 println!("{}↪ {}", indent, p);
