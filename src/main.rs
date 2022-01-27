@@ -69,6 +69,9 @@ enum SubCommand {
     Tree {
         /// The path of the manifest to use.
         path: String,
+        /// Also resolve the imported manifests.
+        #[clap(long, short)]
+        resolve: bool,
     },
 }
 
@@ -219,14 +222,7 @@ fn main() {
                 }
             };
 
-            let mut new_base_path = match path::Path::new(path).parent() {
-                Some(b) => b.to_str().unwrap(),
-                None => "",
-            };
-            flatpak_application.modules =
-                resolve_modules(new_base_path, &flatpak_application.modules);
-            println!("Resolved modules for {}.", flatpak_application.get_id());
-            // FIXME we should actually also resolve the imported sources here.
+            resolve_application(path, &mut flatpak_application);
 
             if *check {
                 return;
@@ -241,7 +237,7 @@ fn main() {
                 }
             };
         }
-        SubCommand::Tree { path } => {
+        SubCommand::Tree { path, resolve } => {
             // TODO we should also try to parse the file as a module manifest here.
             let mut flatpak_application = match FlatpakApplication::load_from_file(path.to_string())
             {
@@ -252,13 +248,26 @@ fn main() {
                 }
             };
 
-            // TODO resolve if the option was passed.
+            if *resolve {
+                resolve_application(path, &mut flatpak_application);
+            }
+
             // TODO add a maximum depth option.
 
             println!("{}", flatpak_application.get_id());
             print_modules(&flatpak_application.modules, 0);
         }
     }
+}
+
+pub fn resolve_application(path: &str, application: &mut FlatpakApplication) {
+    let mut new_base_path = match path::Path::new(path).parent() {
+        Some(b) => b.to_str().unwrap(),
+        None => "",
+    };
+    application.modules = resolve_modules(new_base_path, &application.modules);
+    println!("Resolved modules for {}.", application.get_id());
+    // FIXME we should actually also resolve the imported sources here.
 }
 
 pub fn print_modules(module_items: &Vec<FlatpakModuleItem>, depth: i64) {
