@@ -240,7 +240,11 @@ fn main() {
                 }
             };
         }
-        SubCommand::Tree { path, resolve, max_depth } => {
+        SubCommand::Tree {
+            path,
+            resolve,
+            max_depth,
+        } => {
             // TODO we should also try to parse the file as a module manifest here.
             let mut flatpak_application = match FlatpakApplication::load_from_file(path.to_string())
             {
