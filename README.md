@@ -5,6 +5,12 @@ A CLI app for Flatpak manifests.
 [![dependency status](https://deps.rs/repo/github/louib/fpcli/status.svg)](https://deps.rs/repo/github/louib/fpcli)
 [![License file](https://img.shields.io/github/license/louib/fpcli)](https://github.com/louib/fpcli/blob/master/LICENSE)
 
+## Installing
+If you already have `cargo` installed, you can install `fpcli` directly from `crates.io`:
+```
+cargo install fpcli
+```
+
 ## Usage
 ```
 fpcli 
