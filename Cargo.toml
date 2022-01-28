@@ -15,6 +15,7 @@ license = "MIT"
 readme = "README.md"
 
 version = "0.0.4"
+rust-version = "1.56"
 edition = "2018"
 
 include = [
