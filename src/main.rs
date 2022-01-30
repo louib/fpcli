@@ -9,7 +9,7 @@ use clap::{AppSettings, Parser, Subcommand};
 use flatpak_rs::application::FlatpakApplication;
 use flatpak_rs::format::FlatpakManifestFormat;
 use flatpak_rs::module::{FlatpakModule, FlatpakModuleItem};
-use flatpak_rs::source::{FlatpakSource, FlatpakSourceItem, GIT};
+use flatpak_rs::source::{FlatpakSource, FlatpakSourceItem, FlatpakSourceType};
 
 mod bare_install;
 mod utils;
@@ -292,7 +292,7 @@ fn main() {
             let mut current_module = FlatpakModule::default();
             let mut current_source = FlatpakSource::default();
 
-            current_source.r#type = Some(GIT.to_string());
+            current_source.r#type = Some(FlatpakSourceType::Git);
             current_source.path = Some("./".to_string());
             current_module
                 .sources
