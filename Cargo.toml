@@ -27,6 +27,6 @@ include = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-flatpak-rs = "0.10"
+flatpak-rs = "0.11"
 
 clap = { version = "3", features = ["derive"] }
