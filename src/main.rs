@@ -46,13 +46,15 @@ enum SubCommand {
         /// The path of the manifest to parse.
         path: String,
     },
-    /// Converts a manifest to YAML. The manifest must be a valid
+    /// Converts a manifest. The manifest must be a valid
     /// Flatpak manifest.
     #[clap(setting(AppSettings::ArgRequiredElseHelp))]
-    #[clap(name = "to-yaml")]
-    ToYaml {
+    Convert {
         /// The path of the manifest to convert.
         path: String,
+        /// The format to convert the manifest to.
+        #[clap(name = "format")]
+        format_name: String,
     },
     /// Parse a Flatpak manifest.
     #[clap(setting(AppSettings::ArgRequiredElseHelp))]
@@ -136,11 +138,7 @@ fn main() {
 
             // TODO Also try to parse for source manifests.
         }
-        SubCommand::ToYaml { path } => {
-            if !path.ends_with(".json") {
-                panic!("Please provide the path of a .json manifest to convert.");
-            }
-
+        SubCommand::Convert { path, format_name } => {
             // TODO we should also try to parse the file as a module manifest or as a source manifest!
             let mut flatpak_application = match FlatpakApplication::load_from_file(path.to_string())
             {
@@ -151,7 +149,13 @@ fn main() {
                 }
             };
 
-            flatpak_application.format = FlatpakManifestFormat::YAML;
+            // This is not optimal. Maybe we need a standalone function for that.
+            let format = match FlatpakManifestFormat::from_path(format_name) {
+                Some(f) => f,
+                None => panic!("Invalid destination format {}.", format_name),
+            };
+
+            flatpak_application.format = format;
 
             let application_dump = match flatpak_application.dump() {
                 Ok(d) => d,
@@ -160,12 +164,7 @@ fn main() {
                     return;
                 }
             };
-
-            let yaml_file_path = path.replace(".json", ".yaml");
-
-            if let Err(e) = fs::write(path::Path::new(&yaml_file_path), application_dump) {
-                panic!("could not write file {}: {}.", yaml_file_path, e);
-            };
+            println!("{}", application_dump);
         }
         SubCommand::Lint { path, check } => {
             // TODO we should also try to parse the file as a module manifest or as a source manifest!
