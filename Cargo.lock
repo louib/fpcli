@@ -66,20 +66,21 @@ dependencies = [
 
 [[package]]
 name = "flatpak-rs"
-version = "0.12.3"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4fb7224e7d925158c3f802d68432dcfe238c5e4dd86c0d6d6ca2375713956f0"
+checksum = "8a90127c62da092c39151b826ae26cfa5ad70bdf8609e9c5fcc727bd24f25b32"
 dependencies = [
  "lazy_static",
  "regex",
  "serde",
  "serde_json",
  "serde_yaml",
+ "toml",
 ]
 
 [[package]]
 name = "fpcli"
-version = "0.0.8"
+version = "0.1.0"
 dependencies = [
  "clap",
  "flatpak-rs",
@@ -294,6 +295,15 @@ name = "textwrap"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1141d4d61095b28419e22cb0bbf02755f5e54e0526f97f1e3d1d160e60885fb"
+
+[[package]]
+name = "toml"
+version = "0.5.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a31142970826733df8241ef35dc040ef98c679ab14d7c3e54d827099b3acecaa"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "unicode-xid"
