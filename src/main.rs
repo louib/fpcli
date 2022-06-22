@@ -46,6 +46,12 @@ enum SubCommand {
         /// The path of the manifest to parse.
         path: String,
     },
+    /// Get the type of the manifest
+    #[clap(name = "get-type")]
+    GetType {
+        /// The path of the manifest parse
+        path: String,
+    },
     /// Converts a manifest. The manifest must be a valid
     /// Flatpak manifest.
     #[clap(setting(AppSettings::ArgRequiredElseHelp))]
@@ -135,8 +141,18 @@ fn main() {
                     println!("{}", url);
                 }
             }
-
-            // TODO Also try to parse for source manifests.
+        }
+        SubCommand::GetType { path } => {
+            if FlatpakApplication::load_from_file(path.to_string()).is_ok() {
+                println!("application");
+            };
+            if FlatpakModule::load_from_file(path.to_string()).is_ok() {
+                println!("module");
+            };
+            if FlatpakSource::load_from_file(path.to_string()).is_ok() {
+                println!("source");
+            };
+            // TODO should we differentiate with 1 source VS multiple sources?
         }
         SubCommand::Convert { path, format_name } => {
             // TODO we should also try to parse the file as a module manifest or as a source manifest!
