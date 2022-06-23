@@ -77,6 +77,18 @@ enum SubCommand {
         #[clap(long, short)]
         check: bool,
     },
+    /// Converts a URL to its reverse DNS equivalent.
+    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    ToReverseDNS {
+        /// The URL to convert to reverse DNS.
+        url: String,
+    },
+    /// Test if a file path uses a reverse DNS ID.
+    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    IsReverseDNS {
+        /// The path of the file to test.
+        path: String,
+    },
     /// Print the modules of a manifest in a tree-like structure.
     #[clap(setting(AppSettings::ArgRequiredElseHelp))]
     Tree {
@@ -235,6 +247,12 @@ fn main() {
                 "Parsed Flatpak application manifest for app {}.",
                 flatpak_application.get_id()
             );
+        }
+        SubCommand::ToReverseDNS { url } => {
+            println!("{}", flatpak_rs::reverse_dns::from_url(url))
+        }
+        SubCommand::IsReverseDNS { path } => {
+            println!("{}", flatpak_rs::reverse_dns::is_reverse_dns(path))
         }
         SubCommand::Resolve { path, check } => {
             // TODO we should also try to parse the file as a module manifest here.
