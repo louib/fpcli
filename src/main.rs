@@ -105,7 +105,7 @@ enum SubCommand {
     Bootstrap {},
 }
 
-fn main() {
+fn main() -> std::process::ExitCode {
     let args = Fpcli::parse();
 
     match &args.command {
@@ -157,7 +157,7 @@ fn main() {
         SubCommand::GetType { path } => {
             if !path::Path::new(&path).is_file() {
                 eprintln!("{} is not a file.", path);
-                return;
+                return std::process::ExitCode::FAILURE;
             }
             if FlatpakApplication::load_from_file(path.to_string()).is_ok() {
                 println!("application");
@@ -170,6 +170,7 @@ fn main() {
                 println!("source");
             };
             eprintln!("{} is not a Flatpak manifest.", path);
+            return std::process::ExitCode::SUCCESS;
         }
         SubCommand::Convert { path, format_name } => {
             // TODO we should also try to parse the file as a module manifest or as a source manifest!
@@ -178,7 +179,7 @@ fn main() {
                 Ok(m) => m,
                 Err(e) => {
                     eprintln!("Could not parse manifest file at {}: {}.", path, e);
-                    return;
+                    return std::process::ExitCode::FAILURE;
                 }
             };
 
@@ -194,7 +195,7 @@ fn main() {
                 Ok(d) => d,
                 Err(e) => {
                     eprintln!("Could not dump manifest: {}.", e);
-                    return;
+                    return std::process::ExitCode::FAILURE;
                 }
             };
             println!("{}", application_dump);
@@ -205,7 +206,7 @@ fn main() {
                 Ok(m) => m,
                 Err(e) => {
                     eprintln!("Could not parse manifest file at {}: {}.", path, e);
-                    return;
+                    return std::process::ExitCode::FAILURE;
                 }
             };
 
@@ -213,7 +214,7 @@ fn main() {
                 Ok(c) => c,
                 Err(e) => {
                     eprintln!("Could not read file {}: {}!", &path, e);
-                    return;
+                    return std::process::ExitCode::FAILURE;
                 }
             };
 
@@ -221,14 +222,14 @@ fn main() {
                 Ok(d) => d,
                 Err(e) => {
                     eprintln!("Could not dump manifest: {}.", e);
-                    return;
+                    return std::process::ExitCode::FAILURE;
                 }
             };
 
             if *check {
                 if application_dump == initial_content {
                     println!("The file is formatted correctly.");
-                    return;
+                    return std::process::ExitCode::FAILURE;
                 } else {
                     panic!("There are formatting issues with the file.");
                 }
@@ -244,7 +245,7 @@ fn main() {
                 Ok(m) => m,
                 Err(e) => {
                     eprintln!("Could not parse manifest file at {}: {}.", path, e);
-                    return;
+                    return std::process::ExitCode::FAILURE;
                 }
             };
 
@@ -266,14 +267,14 @@ fn main() {
                 Ok(m) => m,
                 Err(e) => {
                     eprintln!("Could not parse manifest file at {}: {}.", path, e);
-                    return;
+                    return std::process::ExitCode::FAILURE;
                 }
             };
 
             resolve_application(path, &mut flatpak_application);
 
             if *check {
-                return;
+                return std::process::ExitCode::SUCCESS;
             }
 
             let application_dump = flatpak_application.dump().unwrap();
@@ -281,7 +282,7 @@ fn main() {
                 Ok(content) => content,
                 Err(e) => {
                     eprintln!("could not write file {}: {}.", &path, e);
-                    return;
+                    return std::process::ExitCode::FAILURE;
                 }
             };
         }
@@ -296,7 +297,7 @@ fn main() {
                 Ok(m) => m,
                 Err(e) => {
                     eprintln!("Could not parse manifest file at {}: {}.", path, e);
-                    return;
+                    return std::process::ExitCode::FAILURE;
                 }
             };
 
@@ -342,7 +343,8 @@ fn main() {
 
             println!("{}", flatpak_application.dump().unwrap());
         }
-    }
+    };
+    std::process::ExitCode::SUCCESS
 }
 
 pub fn resolve_application(path: &str, application: &mut FlatpakApplication) {
