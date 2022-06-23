@@ -155,6 +155,10 @@ fn main() {
             }
         }
         SubCommand::GetType { path } => {
+            if !path::Path::new(&path).is_file() {
+                eprintln!("{} is not a file.", path);
+                return;
+            }
             if FlatpakApplication::load_from_file(path.to_string()).is_ok() {
                 println!("application");
             };
@@ -162,9 +166,10 @@ fn main() {
                 println!("module");
             };
             if FlatpakSource::load_from_file(path.to_string()).is_ok() {
+                // TODO should we differentiate with 1 source VS multiple sources?
                 println!("source");
             };
-            // TODO should we differentiate with 1 source VS multiple sources?
+            eprintln!("{} is not a Flatpak manifest.", path);
         }
         SubCommand::Convert { path, format_name } => {
             // TODO we should also try to parse the file as a module manifest or as a source manifest!
