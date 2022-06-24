@@ -8,6 +8,7 @@ use std::path;
 use clap::{AppSettings, Parser, Subcommand};
 use flatpak_rs::application::FlatpakApplication;
 use flatpak_rs::format::FlatpakManifestFormat;
+use flatpak_rs::manifest_type::FlatpakManifestType;
 use flatpak_rs::module::{FlatpakModule, FlatpakModuleItem};
 use flatpak_rs::source::{FlatpakSource, FlatpakSourceItem, FlatpakSourceType};
 
@@ -327,41 +328,52 @@ fn main() -> std::process::ExitCode {
             build_system,
             url,
         } => {
-            let mut flatpak_application = FlatpakApplication::default();
-            flatpak_application.format = FlatpakManifestFormat::YAML;
-            flatpak_application.id = "org.example.appName".to_string();
-            flatpak_application.runtime = "org.gnome.Platform".to_string();
-            flatpak_application.runtime_version = "41".to_string();
-            flatpak_application.sdk = "org.gnome.Sdk".to_string();
+            if let Some(manifest_type) = manifest_type {
+                let manifest_type = match FlatpakManifestType::from_string(&manifest_type) {
+                    Ok(t) => t,
+                    Err(e) => {
+                        eprintln!("Invalid manifest type {:?}.", manifest_type);
+                        return std::process::ExitCode::FAILURE;
+                    }
+                };
 
-            flatpak_application
-                .finish_args
-                .push("--filesystem=home".to_string());
-            flatpak_application
-                .finish_args
-                .push("--socket=x11".to_string());
-            flatpak_application
-                .finish_args
-                .push("--socket=wayland".to_string());
+                match manifest_type {
+                    FlatpakManifestType::Application => {
+                        let mut flatpak_application = FlatpakApplication::default();
+                        flatpak_application.format = FlatpakManifestFormat::YAML;
+                        flatpak_application.id = "org.example.appName".to_string();
+                        flatpak_application.runtime = "org.gnome.Platform".to_string();
+                        flatpak_application.runtime_version = "41".to_string();
+                        flatpak_application.sdk = "org.gnome.Sdk".to_string();
 
-            let mut current_module = FlatpakModule::default();
-            let mut current_source = FlatpakSource::default();
+                        flatpak_application
+                            .finish_args
+                            .push("--filesystem=home".to_string());
+                        flatpak_application
+                            .finish_args
+                            .push("--socket=x11".to_string());
+                        flatpak_application
+                            .finish_args
+                            .push("--socket=wayland".to_string());
 
-            current_source.r#type = Some(FlatpakSourceType::Git);
-            if let Some(url) = url {
-                current_source.url = Some(url.clone());
-            } else {
-                current_source.path = Some("./".to_string());
+                        let mut default_module = get_default_module(url.to_owned());
+                        flatpak_application
+                            .modules
+                            .push(FlatpakModuleItem::Description(default_module));
+
+                        println!("{}", flatpak_application.dump().unwrap());
+                    }
+                    FlatpakManifestType::Module => {
+                        let mut default_module = get_default_module(url.to_owned());
+                        println!("{}", default_module.dump().unwrap());
+                    }
+                    FlatpakManifestType::Source => {
+                        // let mut default_source = get_default_source(url.to_owned());
+                        // println!("{}", default_source.dump().unwrap());
+                        eprintln!("Bootstrapping a source manifest is not supported yet.");
+                    }
+                };
             }
-            current_module
-                .sources
-                .push(FlatpakSourceItem::Description(current_source));
-
-            flatpak_application
-                .modules
-                .push(FlatpakModuleItem::Description(current_module));
-
-            println!("{}", flatpak_application.dump().unwrap());
         }
     };
     std::process::ExitCode::SUCCESS
@@ -425,4 +437,24 @@ pub fn resolve_modules(
         };
     }
     response
+}
+
+pub fn get_default_source(url: Option<String>) -> FlatpakSource {
+    let mut default_source = FlatpakSource::default();
+
+    default_source.r#type = Some(FlatpakSourceType::Git);
+    if let Some(url) = url {
+        default_source.url = Some(url.clone());
+    } else {
+        default_source.path = Some("./".to_string());
+    }
+    default_source
+}
+
+pub fn get_default_module(url: Option<String>) -> FlatpakModule {
+    let mut default_module = FlatpakModule::default();
+    default_module
+        .sources
+        .push(FlatpakSourceItem::Description(get_default_source(url)));
+    default_module
 }
