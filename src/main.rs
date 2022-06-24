@@ -348,7 +348,11 @@ fn main() -> std::process::ExitCode {
             let mut current_source = FlatpakSource::default();
 
             current_source.r#type = Some(FlatpakSourceType::Git);
-            current_source.path = Some("./".to_string());
+            if let Some(url) = url {
+                current_source.url = Some(url.clone());
+            } else {
+                current_source.path = Some("./".to_string());
+            }
             current_module
                 .sources
                 .push(FlatpakSourceItem::Description(current_source));
