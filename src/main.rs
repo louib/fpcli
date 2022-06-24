@@ -442,10 +442,15 @@ pub fn resolve_modules(
 pub fn get_default_source(url: Option<String>) -> FlatpakSource {
     let mut default_source = FlatpakSource::default();
 
-    default_source.r#type = Some(FlatpakSourceType::Git);
     if let Some(url) = url {
+        if url.ends_with(".git") {
+            default_source.r#type = Some(FlatpakSourceType::Git);
+        } else {
+            default_source.r#type = Some(FlatpakSourceType::Archive);
+        }
         default_source.url = Some(url.clone());
     } else {
+        default_source.r#type = Some(FlatpakSourceType::Dir);
         default_source.path = Some("./".to_string());
     }
     default_source
