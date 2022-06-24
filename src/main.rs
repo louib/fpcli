@@ -101,8 +101,20 @@ enum SubCommand {
         #[clap(long, short)]
         max_depth: Option<i64>,
     },
-    /// Creates a new application manifest for the current project.
-    Bootstrap {},
+    /// Creates a new manifest from the available information.
+    Bootstrap {
+        /// The type of manifest to bootstrap. This will
+        /// default to an application manifest.
+        #[clap(long, short)]
+        manifest_type: Option<String>,
+
+        /// A build system, in the case of an application or a module.
+        build_system: Option<String>,
+
+        /// A url to bootstrap from.
+        #[clap(long, short)]
+        url: Option<String>,
+    },
 }
 
 fn main() -> std::process::ExitCode {
@@ -310,7 +322,11 @@ fn main() -> std::process::ExitCode {
             println!("{}", flatpak_application.get_id());
             print_modules(&flatpak_application.modules, 0, max_depth.unwrap_or(1000));
         }
-        SubCommand::Bootstrap {} => {
+        SubCommand::Bootstrap {
+            manifest_type,
+            build_system,
+            url,
+        } => {
             let mut flatpak_application = FlatpakApplication::default();
             flatpak_application.format = FlatpakManifestFormat::YAML;
             flatpak_application.id = "org.example.appName".to_string();
