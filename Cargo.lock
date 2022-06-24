@@ -75,16 +75,15 @@ dependencies = [
 
 [[package]]
 name = "flatpak-rs"
-version = "0.14.0"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80977fe9bcb3e3d402ed304992878c6d5f31e6f2c86cb511dab0bad2d3134d64"
+checksum = "4806a46befd1ea82bdfe13be10d0443e90d7c35b1c471d8ceb531c769b0dd6c8"
 dependencies = [
  "lazy_static",
  "regex",
  "serde",
  "serde_json",
  "serde_yaml",
- "toml",
 ]
 
 [[package]]
@@ -307,15 +306,6 @@ name = "textwrap"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1141d4d61095b28419e22cb0bbf02755f5e54e0526f97f1e3d1d160e60885fb"
-
-[[package]]
-name = "toml"
-version = "0.5.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d82e1a7758622a465f8cee077614c73484dac5b836c02ff6a40d5d1010324d7"
-dependencies = [
- "serde",
-]
 
 [[package]]
 name = "unicode-ident"
