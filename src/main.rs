@@ -439,13 +439,15 @@ pub fn resolve_modules(
     response
 }
 
+pub const DEFAULT_GIT_BRANCH: &str = "master";
+
 pub fn get_default_source(url: Option<String>) -> FlatpakSource {
     let mut default_source = FlatpakSource::default();
 
     if let Some(url) = url {
         if url.ends_with(".git") {
             default_source.r#type = Some(FlatpakSourceType::Git);
-            default_source.branch = Some("master".to_string());
+            default_source.branch = Some(DEFAULT_GIT_BRANCH.to_string());
         } else {
             default_source.r#type = Some(FlatpakSourceType::Archive);
         }
@@ -459,8 +461,52 @@ pub fn get_default_source(url: Option<String>) -> FlatpakSource {
 
 pub fn get_default_module(url: Option<String>) -> FlatpakModule {
     let mut default_module = FlatpakModule::default();
+    let default_source = get_default_source(url);
+    if default_source.get_type() == Some(FlatpakSourceType::Git) && default_source.url.is_some() {
+        if let Some(project_name) =
+            get_project_name_from_git_url(default_source.url.as_ref().unwrap().to_string())
+        {
+            default_module.name = format!("{}.{}", project_name, DEFAULT_GIT_BRANCH);
+        } else {
+            default_module.name = format!("project-name.{}", DEFAULT_GIT_BRANCH);
+        }
+    } else if default_source.get_type() == Some(FlatpakSourceType::Archive)
+        && default_source.url.is_some()
+    {
+        if let Some(project_name) =
+            flatpak_rs::archive::get_project_name_from_url(default_source.url.as_ref().unwrap())
+        {
+            default_module.name = format!("{}.archive", project_name);
+        } else {
+            default_module.name = format!("project-name.{}", DEFAULT_GIT_BRANCH);
+        }
+    }
     default_module
         .sources
-        .push(FlatpakSourceItem::Description(get_default_source(url)));
+        .push(FlatpakSourceItem::Description(default_source));
     default_module
+}
+
+///```
+///let project_name = crate::main::get_project_name_from_git_url(
+///  "https://github.com/louib/flatpak-rs.git"
+///);
+///assert!(project_name.is_some());
+///assert_eq!(project_name.unwrap(), "flatpak-rs");
+///
+///let project_name = crate::main::get_project_name_from_git_url(
+///  "git@github.com:louib/flatpak-rs.git"
+///);
+///assert!(project_name.is_some());
+///assert_eq!(project_name.unwrap(), "flatpak-rs");
+///```
+pub fn get_project_name_from_git_url(url: String) -> Option<String> {
+    if !url.ends_with(".git") {
+        return None;
+    }
+
+    let url = url.replace(".git", "");
+    let project_name = url.split("/").last().unwrap();
+
+    Some(project_name.to_string())
 }
