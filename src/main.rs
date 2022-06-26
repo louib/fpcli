@@ -462,7 +462,15 @@ pub fn get_default_source(url: Option<String>) -> FlatpakSource {
 pub fn get_default_module(url: Option<String>) -> FlatpakModule {
     let mut default_module = FlatpakModule::default();
     let default_source = get_default_source(url);
-    if default_source.get_type() == Some(FlatpakSourceType::Git) && default_source.url.is_some() {
+    default_module
+        .sources
+        .push(FlatpakSourceItem::Description(default_source.clone()));
+
+    if default_source.url.is_none() {
+        return default_module;
+    }
+
+    if default_source.get_type() == Some(FlatpakSourceType::Git) {
         if let Some(project_name) =
             get_project_name_from_git_url(default_source.url.as_ref().unwrap().to_string())
         {
@@ -470,9 +478,7 @@ pub fn get_default_module(url: Option<String>) -> FlatpakModule {
         } else {
             default_module.name = format!("project-name.{}", DEFAULT_GIT_BRANCH);
         }
-    } else if default_source.get_type() == Some(FlatpakSourceType::Archive)
-        && default_source.url.is_some()
-    {
+    } else if default_source.get_type() == Some(FlatpakSourceType::Archive) {
         if let Some(project_name) =
             flatpak_rs::archive::get_project_name_from_url(default_source.url.as_ref().unwrap())
         {
@@ -481,9 +487,6 @@ pub fn get_default_module(url: Option<String>) -> FlatpakModule {
             default_module.name = format!("project-name.{}", DEFAULT_GIT_BRANCH);
         }
     }
-    default_module
-        .sources
-        .push(FlatpakSourceItem::Description(default_source));
     default_module
 }
 
