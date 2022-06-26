@@ -445,6 +445,7 @@ pub fn get_default_source(url: Option<String>) -> FlatpakSource {
     if let Some(url) = url {
         if url.ends_with(".git") {
             default_source.r#type = Some(FlatpakSourceType::Git);
+            default_source.branch = Some("master".to_string());
         } else {
             default_source.r#type = Some(FlatpakSourceType::Archive);
         }
