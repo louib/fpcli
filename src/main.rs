@@ -2,6 +2,7 @@
 //! For a Flatpak library for Rust, see [flatpak-rs](https://crates.io/crates/flatpak-rs)
 //! To get the list of available commands, run `fpcli -h`.
 use std::env;
+use std::ffi::OsString;
 use std::fs;
 use std::path;
 
@@ -270,7 +271,7 @@ fn main() -> std::process::ExitCode {
         SubCommand::Install { path, bare, print } => {
             let mut modules: Vec<FlatpakModule> = vec![];
 
-            if let Ok(flatpak_app) = FlatpakApplication::load_from_file(path.to_string()) {
+            if let Ok(mut flatpak_app) = FlatpakApplication::load_from_file(path.to_string()) {
                 resolve_application(path, &mut flatpak_app);
 
                 for module in flatpak_app.get_all_modules_recursively() {
@@ -284,8 +285,44 @@ fn main() -> std::process::ExitCode {
                 }
             }
 
+            if let Ok(flatpak_module) = FlatpakModule::load_from_file(path.to_string()) {
+                let mut resolved_modules =
+                    resolve_modules(path, &vec![FlatpakModuleItem::Description(flatpak_module)]);
+
+                for module in resolved_modules {
+                    let module_description = match module {
+                        FlatpakModuleItem::Path(_) => {
+                            panic!("There should be no module defined as path after resolving.")
+                        }
+                        FlatpakModuleItem::Description(d) => d,
+                    };
+                    modules.push(module_description.to_owned());
+                    for inner_module in module_description.get_all_modules_recursively() {
+                        let inner_module_description = match inner_module {
+                            FlatpakModuleItem::Path(_) => {
+                                panic!("There should be no module defined as path after resolving.")
+                            }
+                            FlatpakModuleItem::Description(d) => d,
+                        };
+                        modules.push(inner_module_description.to_owned());
+                    }
+                }
+            }
+
+            if !bare || !print {
+                panic!("Only --print and --bare is supported at the moment.");
+            }
+
             for module in modules {
+                let mut args: Vec<OsString> = vec![];
+
                 eprintln!("Installing module {}", module.name);
+                for command in module.get_commands(args, true, "", "", Some(""), 0) {
+                    print!("{}", command.get_program().to_str().unwrap());
+                    for arg in command.get_args() {
+                        print!(" {}", arg.to_str().unwrap());
+                    }
+                }
             }
         }
         SubCommand::Lint { path, check } => {
@@ -318,7 +355,6 @@ fn main() -> std::process::ExitCode {
                 if application_dump == initial_content {
                     println!("The file is formatted correctly.");
                     return std::process::ExitCode::FAILURE;
-                    let application_manifest = application_manifest.resolve();
                 } else {
                     panic!("There are formatting issues with the file.");
                 }
