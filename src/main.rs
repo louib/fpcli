@@ -327,43 +327,77 @@ fn main() -> std::process::ExitCode {
             }
         }
         SubCommand::Lint { path, check } => {
-            // TODO we should also try to parse the file as a module manifest or as a source manifest!
-            let flatpak_application = match FlatpakApplication::load_from_file(path.to_string()) {
-                Ok(m) => m,
-                Err(e) => {
-                    eprintln!("Could not parse manifest file at {}: {}.", path, e);
-                    return std::process::ExitCode::FAILURE;
-                }
-            };
+            if let Ok(flatpak_application) = FlatpakApplication::load_from_file(path.to_string()) {
+                let initial_content = match fs::read_to_string(path) {
+                    Ok(c) => c,
+                    Err(e) => {
+                        eprintln!("Could not read file {}: {}!", &path, e);
+                        return std::process::ExitCode::FAILURE;
+                    }
+                };
 
-            let initial_content = match fs::read_to_string(path) {
-                Ok(c) => c,
-                Err(e) => {
-                    eprintln!("Could not read file {}: {}!", &path, e);
-                    return std::process::ExitCode::FAILURE;
-                }
-            };
+                let application_dump = match flatpak_application.dump() {
+                    Ok(d) => d,
+                    Err(e) => {
+                        eprintln!("Could not dump manifest: {}.", e);
+                        return std::process::ExitCode::FAILURE;
+                    }
+                };
 
-            let application_dump = match flatpak_application.dump() {
-                Ok(d) => d,
-                Err(e) => {
-                    eprintln!("Could not dump manifest: {}.", e);
-                    return std::process::ExitCode::FAILURE;
+                if *check {
+                    if application_dump == initial_content {
+                        println!("The file is formatted correctly.");
+                        return std::process::ExitCode::FAILURE;
+                    } else {
+                        panic!("There are formatting issues with the file.");
+                    }
                 }
-            };
 
-            if *check {
-                if application_dump == initial_content {
-                    println!("The file is formatted correctly.");
-                    return std::process::ExitCode::FAILURE;
-                } else {
-                    panic!("There are formatting issues with the file.");
-                }
+                if let Err(e) = fs::write(path::Path::new(&path), application_dump) {
+                    panic!("could not write file {}: {}.", path, e);
+                };
+
+                return std::process::ExitCode::SUCCESS;
             }
 
-            if let Err(e) = fs::write(path::Path::new(&path), application_dump) {
-                panic!("could not write file {}: {}.", path, e);
-            };
+            if let Ok(flatpak_module) = FlatpakModule::load_from_file(path.to_string()) {
+                let initial_content = match fs::read_to_string(path) {
+                    Ok(c) => c,
+                    Err(e) => {
+                        eprintln!("Could not read file {}: {}!", &path, e);
+                        return std::process::ExitCode::FAILURE;
+                    }
+                };
+
+                let module_dump = match flatpak_module.dump() {
+                    Ok(d) => d,
+                    Err(e) => {
+                        eprintln!("Could not dump manifest: {}.", e);
+                        return std::process::ExitCode::FAILURE;
+                    }
+                };
+
+                if *check {
+                    if module_dump == initial_content {
+                        println!("The file is formatted correctly.");
+                        return std::process::ExitCode::FAILURE;
+                    } else {
+                        panic!("There are formatting issues with the file.");
+                    }
+                }
+
+                if let Err(e) = fs::write(path::Path::new(&path), module_dump) {
+                    panic!("could not write file {}: {}.", path, e);
+                };
+
+                return std::process::ExitCode::SUCCESS;
+            }
+
+            if let Ok(flatpak_sources) = FlatpakSource::load_from_file(path.to_string()) {
+                panic!("Lint Flatpak source manifests is not yet supported :(");
+            }
+
+            panic!("Could not parse Flatpak manifest at {}.", path);
         }
         SubCommand::Parse { path } => {
             // TODO we should also try to parse the file as a module manifest or as a source manifest!
