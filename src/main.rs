@@ -12,7 +12,6 @@ use flatpak_rs::manifest_type::FlatpakManifestType;
 use flatpak_rs::module::{FlatpakModule, FlatpakModuleItem};
 use flatpak_rs::source::{FlatpakSource, FlatpakSourceItem, FlatpakSourceType};
 
-mod bare_install;
 mod utils;
 
 /// A CLI app for Flatpak manifests.
@@ -35,6 +34,22 @@ enum SubCommand {
         /// Only check the manifest for formatting issues.
         #[clap(long, short)]
         check: bool,
+    },
+    /// Install all the modules in a manifest. The manifest has to be an application
+    /// manifest or a module manifest.
+    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    Install {
+        /// The path of the application or module manifest to install.
+        path: String,
+
+        /// Do not install the modules in a flatpak container. Install them
+        /// on the host system instead.
+        #[clap(long, short)]
+        bare: bool,
+
+        /// Only print the install instructions to stdout.
+        #[clap(long, short)]
+        print: bool,
     },
     /// List all the Flatpak manifests in a specific directory.
     Ls {
@@ -252,6 +267,27 @@ fn main() -> std::process::ExitCode {
             };
             println!("{}", application_dump);
         }
+        SubCommand::Install { path, bare, print } => {
+            let mut modules: Vec<FlatpakModule> = vec![];
+
+            if let Ok(flatpak_app) = FlatpakApplication::load_from_file(path.to_string()) {
+                resolve_application(path, &mut flatpak_app);
+
+                for module in flatpak_app.get_all_modules_recursively() {
+                    let module_description = match module {
+                        FlatpakModuleItem::Path(_) => {
+                            panic!("There should be no module defined as path after resolving.")
+                        }
+                        FlatpakModuleItem::Description(d) => d,
+                    };
+                    modules.push(module_description.clone());
+                }
+            }
+
+            for module in modules {
+                eprintln!("Installing module {}", module.name);
+            }
+        }
         SubCommand::Lint { path, check } => {
             // TODO we should also try to parse the file as a module manifest or as a source manifest!
             let flatpak_application = match FlatpakApplication::load_from_file(path.to_string()) {
@@ -282,6 +318,7 @@ fn main() -> std::process::ExitCode {
                 if application_dump == initial_content {
                     println!("The file is formatted correctly.");
                     return std::process::ExitCode::FAILURE;
+                    let application_manifest = application_manifest.resolve();
                 } else {
                     panic!("There are formatting issues with the file.");
                 }
