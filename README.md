@@ -13,7 +13,7 @@ cargo install fpcli
 
 ## Usage
 ```
-fpcli 0.2.0
+fpcli 0.3.1
 A CLI app for Flatpak manifests.
 
 USAGE:
@@ -24,11 +24,13 @@ OPTIONS:
     -V, --version    Print version information
 
 SUBCOMMANDS:
-    bootstrap         Creates a new application manifest for the current project
+    bootstrap         Creates a new manifest from the available information
     convert           Converts a manifest. The manifest must be a valid Flatpak manifest
     get-type          Get the type of the manifest
     get-urls          Get all the urls contained in a manifest
     help              Print this message or the help of the given subcommand(s)
+    install           Install all the modules in a manifest. The manifest has to be an
+                          application manifest or a module manifest
     is-reverse-dns    Test if a file path uses a reverse DNS ID
     lint              Formats a Flatpak manifest
     ls                List all the Flatpak manifests in a specific directory
