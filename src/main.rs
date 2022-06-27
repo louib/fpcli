@@ -322,6 +322,7 @@ fn main() -> std::process::ExitCode {
                     for arg in command.get_args() {
                         print!(" {}", arg.to_str().unwrap());
                     }
+                    println!("");
                 }
             }
         }
