@@ -217,13 +217,16 @@ fn main() -> std::process::ExitCode {
             }
             if FlatpakApplication::load_from_file(path.to_string()).is_ok() {
                 println!("application");
+                return std::process::ExitCode::SUCCESS;
             };
             if FlatpakModule::load_from_file(path.to_string()).is_ok() {
                 println!("module");
+                return std::process::ExitCode::SUCCESS;
             };
             if FlatpakSource::load_from_file(path.to_string()).is_ok() {
                 // TODO should we differentiate with 1 source VS multiple sources?
                 println!("source");
+                return std::process::ExitCode::SUCCESS;
             };
             eprintln!("{} is not a Flatpak manifest.", path);
             return std::process::ExitCode::SUCCESS;
