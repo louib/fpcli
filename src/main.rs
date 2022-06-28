@@ -62,6 +62,8 @@ enum SubCommand {
     GetUrls {
         /// The path of the manifest to parse.
         path: String,
+        /// Only include the URLs for a specific source type.
+        source_type: Option<String>,
         /// Also includes the mirror urls
         #[clap(long, short)]
         mirror_urls: bool,
@@ -164,40 +166,32 @@ fn main() -> std::process::ExitCode {
                 }
             }
         }
-        SubCommand::GetUrls { path, mirror_urls } => {
+        SubCommand::GetUrls {
+            path,
+            source_type,
+            mirror_urls,
+        } => {
             // TODO do some validations on the file path before trying to parse it.
             // TODO we should probably resolve the manifest completely? Or at least offer an option
             // to also resolve the manifest.
+            let mut included_source_types: Option<Vec<FlatpakSourceType>> = None;
+            if let Some(source_type) = source_type {
+                included_source_types =
+                    Some(vec![FlatpakSourceType::from_string(source_type).unwrap()]);
+            }
 
             if let Ok(flatpak_application) = FlatpakApplication::load_from_file(path.to_string()) {
-                for module in flatpak_application.get_all_modules_recursively() {
-                    let module_description = match module {
-                        FlatpakModuleItem::Description(d) => d,
-                        FlatpakModuleItem::Path(_) => continue,
-                    };
-                    if *mirror_urls {
-                        for url in module_description.get_all_urls() {
-                            println!("{}", url);
-                        }
-                    } else {
-                        for url in module_description.get_urls() {
-                            println!("{}", url);
-                        }
-                    }
+                for url in flatpak_application.get_urls(*mirror_urls, included_source_types.clone())
+                {
+                    println!("{}", url);
                 }
 
                 return std::process::ExitCode::SUCCESS;
             }
 
             if let Ok(flatpak_module) = FlatpakModule::load_from_file(path.to_string()) {
-                if *mirror_urls {
-                    for url in flatpak_module.get_all_urls() {
-                        println!("{}", url);
-                    }
-                } else {
-                    for url in flatpak_module.get_urls() {
-                        println!("{}", url);
-                    }
+                for url in flatpak_module.get_urls(*mirror_urls, included_source_types.clone()) {
+                    println!("{}", url);
                 }
 
                 return std::process::ExitCode::SUCCESS;
@@ -205,14 +199,8 @@ fn main() -> std::process::ExitCode {
 
             if let Ok(flatpak_source) = FlatpakSource::load_from_file(path.to_string()) {
                 for source in flatpak_source {
-                    if *mirror_urls {
-                        for url in source.get_all_urls() {
-                            println!("{}", url);
-                        }
-                    } else {
-                        if let Some(url) = source.get_url() {
-                            println!("{}", url);
-                        }
+                    for url in source.get_urls(*mirror_urls, included_source_types.clone()) {
+                        println!("{}", url);
                     }
                 }
 
