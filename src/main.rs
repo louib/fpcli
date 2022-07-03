@@ -90,6 +90,18 @@ enum SubCommand {
         /// The path of the manifest to parse.
         path: String,
     },
+    /// Add a module to a Flatpak manifest. The target flatpak manifest
+    /// must be a Flatpak application manifest or a Flatpak module
+    /// manifest. By default, the module is imported by path.
+    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    AddModule {
+        /// The path of the manifest to add the module to.
+        manifest_path: String,
+        /// The path of the module to add to the manifest.
+        module_path: String,
+        /// Inline the module instead of importing by path.
+        inline: bool,
+    },
     /// Resolve all the imported manifests in a manifest file.
     #[clap(setting(AppSettings::ArgRequiredElseHelp))]
     Resolve {
@@ -391,19 +403,37 @@ fn main() -> std::process::ExitCode {
             panic!("Could not parse Flatpak manifest at {}.", path);
         }
         SubCommand::Parse { path } => {
-            // TODO we should also try to parse the file as a module manifest or as a source manifest!
-            let flatpak_application = match FlatpakApplication::load_from_file(path.to_string()) {
-                Ok(m) => m,
+            match FlatpakApplication::load_from_file(path.to_string()) {
+                Ok(a) => {
+                    println!("Parsed Flatpak application manifest for {}.", a.get_id());
+                    return std::process::ExitCode::SUCCESS;
+                }
                 Err(e) => {
-                    eprintln!("Could not parse manifest file at {}: {}.", path, e);
-                    return std::process::ExitCode::FAILURE;
+                    eprintln!("Could not parse Flatpak application from {}: {}.", path, e);
                 }
             };
 
-            println!(
-                "Parsed Flatpak application manifest for app {}.",
-                flatpak_application.get_id()
-            );
+            match FlatpakModule::load_from_file(path.to_string()) {
+                Ok(module) => {
+                    println!("Parsed Flatpak module manifest for {}.", module.name);
+                    return std::process::ExitCode::SUCCESS;
+                }
+                Err(e) => {
+                    eprintln!("Could not parse Flatpak module from {}: {}.", path, e);
+                }
+            };
+
+            match FlatpakSource::load_from_file(path.to_string()) {
+                Ok(sources) => {
+                    println!("Parsed {} Flatpak source(s) from file.", sources.len());
+                    return std::process::ExitCode::SUCCESS;
+                }
+                Err(e) => {
+                    eprintln!("Could not parse Flatpak sources from {}: {}.", path, e);
+                }
+            };
+
+            return std::process::ExitCode::FAILURE;
         }
         SubCommand::ToReverseDNS { url } => {
             println!("{}", flatpak_rs::reverse_dns::from_url(url))
@@ -411,6 +441,11 @@ fn main() -> std::process::ExitCode {
         SubCommand::IsReverseDNS { path } => {
             println!("{}", flatpak_rs::reverse_dns::is_reverse_dns(path))
         }
+        SubCommand::AddModule {
+            manifest_path,
+            module_path,
+            inline,
+        } => {}
         SubCommand::Resolve { path, check } => {
             // TODO we should also try to parse the file as a module manifest here.
             let mut flatpak_application = match FlatpakApplication::load_from_file(path.to_string())
