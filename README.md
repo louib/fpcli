@@ -13,7 +13,7 @@ cargo install fpcli
 
 ## Usage
 ```
-fpcli 0.3.1
+fpcli 0.4.0
 A CLI app for Flatpak manifests.
 
 USAGE:
@@ -24,6 +24,9 @@ OPTIONS:
     -V, --version    Print version information
 
 SUBCOMMANDS:
+    add-module        Add a module to a Flatpak manifest. The target flatpak manifest must be a
+                          Flatpak application manifest or a Flatpak module manifest. By default, the
+                          module is imported by path
     bootstrap         Creates a new manifest from the available information
     convert           Converts a manifest. The manifest must be a valid Flatpak manifest
     get-type          Get the type of the manifest

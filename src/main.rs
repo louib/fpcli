@@ -450,7 +450,8 @@ fn main() -> std::process::ExitCode {
                 Ok(mut app) => {
                     println!("Parsed Flatpak application manifest for {}.", app.get_id());
 
-                    app.modules.push(FlatpakModuleItem::Path(manifest_path.to_string()));
+                    app.modules
+                        .push(FlatpakModuleItem::Path(manifest_path.to_string()));
 
                     let app_dump = app.dump().unwrap();
                     if let Err(e) = fs::write(path::Path::new(&manifest_path), app_dump) {
@@ -461,19 +462,27 @@ fn main() -> std::process::ExitCode {
                     return std::process::ExitCode::SUCCESS;
                 }
                 Err(e) => {
-                    eprintln!("Could not parse Flatpak application from {}: {}.", manifest_path, e);
+                    eprintln!(
+                        "Could not parse Flatpak application from {}: {}.",
+                        manifest_path, e
+                    );
                 }
             };
 
             match FlatpakModule::load_from_file(manifest_path.to_string()) {
                 Ok(mut module) => {
-                    module.modules.push(FlatpakModuleItem::Path(manifest_path.to_string()));
+                    module
+                        .modules
+                        .push(FlatpakModuleItem::Path(manifest_path.to_string()));
 
                     println!("Parsed Flatpak module manifest for {}.", module.name);
                     return std::process::ExitCode::SUCCESS;
                 }
                 Err(e) => {
-                    eprintln!("Could not parse Flatpak module from {}: {}.", manifest_path, e);
+                    eprintln!(
+                        "Could not parse Flatpak module from {}: {}.",
+                        manifest_path, e
+                    );
                 }
             };
 
