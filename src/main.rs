@@ -445,7 +445,41 @@ fn main() -> std::process::ExitCode {
             manifest_path,
             module_path,
             inline,
-        } => {}
+        } => {
+            match FlatpakApplication::load_from_file(manifest_path.to_string()) {
+                Ok(mut app) => {
+                    println!("Parsed Flatpak application manifest for {}.", app.get_id());
+
+                    app.modules.push(FlatpakModuleItem::Path(manifest_path.to_string()));
+
+                    let app_dump = app.dump().unwrap();
+                    if let Err(e) = fs::write(path::Path::new(&manifest_path), app_dump) {
+                        eprintln!("could not write file {}: {}.", &manifest_path, e);
+                        return std::process::ExitCode::FAILURE;
+                    }
+
+                    return std::process::ExitCode::SUCCESS;
+                }
+                Err(e) => {
+                    eprintln!("Could not parse Flatpak application from {}: {}.", manifest_path, e);
+                }
+            };
+
+            match FlatpakModule::load_from_file(manifest_path.to_string()) {
+                Ok(mut module) => {
+                    module.modules.push(FlatpakModuleItem::Path(manifest_path.to_string()));
+
+                    println!("Parsed Flatpak module manifest for {}.", module.name);
+                    return std::process::ExitCode::SUCCESS;
+                }
+                Err(e) => {
+                    eprintln!("Could not parse Flatpak module from {}: {}.", manifest_path, e);
+                }
+            };
+
+            eprintln!("Could not parse Flatpak manifest at {}", manifest_path);
+            return std::process::ExitCode::FAILURE;
+        }
         SubCommand::Resolve { path, check } => {
             // TODO we should also try to parse the file as a module manifest here.
             let mut flatpak_application = match FlatpakApplication::load_from_file(path.to_string())
@@ -464,13 +498,12 @@ fn main() -> std::process::ExitCode {
             }
 
             let application_dump = flatpak_application.dump().unwrap();
-            match fs::write(path::Path::new(&path), application_dump) {
-                Ok(content) => content,
-                Err(e) => {
-                    eprintln!("could not write file {}: {}.", &path, e);
-                    return std::process::ExitCode::FAILURE;
-                }
+            if let Err(e) = fs::write(path::Path::new(&path), application_dump) {
+                eprintln!("could not write file {}: {}.", &path, e);
+                return std::process::ExitCode::FAILURE;
             };
+
+            return std::process::ExitCode::SUCCESS;
         }
         SubCommand::Tree {
             path,
