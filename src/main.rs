@@ -100,6 +100,7 @@ enum SubCommand {
         /// The path of the module to add to the manifest.
         module_path: String,
         /// Inline the module instead of importing by path.
+        #[clap(long, short)]
         inline: bool,
     },
     /// Resolve all the imported manifests in a manifest file.
@@ -446,6 +447,10 @@ fn main() -> std::process::ExitCode {
             module_path,
             inline,
         } => {
+
+            if *inline {
+                panic!("The inline option is not implemented yet!");
+            }
             match FlatpakApplication::load_from_file(manifest_path.to_string()) {
                 Ok(mut app) => {
                     println!("Parsed Flatpak application manifest for {}.", app.get_id());
