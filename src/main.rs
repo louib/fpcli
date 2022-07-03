@@ -447,7 +447,6 @@ fn main() -> std::process::ExitCode {
             module_path,
             inline,
         } => {
-
             if *inline {
                 panic!("The inline option is not implemented yet!");
             }

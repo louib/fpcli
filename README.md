@@ -13,7 +13,7 @@ cargo install fpcli
 
 ## Usage
 ```
-fpcli 0.4.0
+fpcli 0.5.0
 A CLI app for Flatpak manifests.
 
 USAGE:
